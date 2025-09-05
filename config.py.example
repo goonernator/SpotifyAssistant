@@ -1,0 +1,19 @@
+# Spotify API Configuration
+# Get these values from https://developer.spotify.com/dashboard
+
+# Your Spotify App Client ID
+CLIENT_ID = "YOUR_CLIENT_ID"
+
+# Your Spotify App Client Secret
+CLIENT_SECRET = "YOUR_CLIENT_SECRET"
+
+# Redirect URI (must match what you set in your Spotify app)
+REDIRECT_URI = "http://localhost:8888/callback"
+
+# Voice Recognition Settings
+VOICE_TIMEOUT = 3  # seconds to wait for voice input (reduced for faster response)
+VOICE_PHRASE_LIMIT = 5  # maximum seconds for a single phrase (reduced for quicker processing)
+
+# Text-to-Speech Settings
+TTS_RATE = 150  # words per minute
+TTS_VOLUME = 0.8  # volume level (0.0 to 1.0)

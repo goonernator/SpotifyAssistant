@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Cache
+.cache/
+
+# Test files
+microphone_test.py
+
+# Config
+config.py
