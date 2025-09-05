@@ -114,8 +114,22 @@ class SpotifyAssistant:
             return False
     
     def speak(self, text: str):
-        """Print text without speaking (silent mode)"""
+        """Speak text using TTS engine and also print it"""
         print(f"Assistant: {text}")
+        
+        # Only use TTS if enabled in config
+        if hasattr(globals(), 'TTS_ENABLED') and TTS_ENABLED:
+            try:
+                # Use TTS in a separate thread to avoid blocking
+                def speak_async():
+                    self.tts_engine.say(text)
+                    self.tts_engine.runAndWait()
+                
+                # Run TTS in background thread
+                tts_thread = threading.Thread(target=speak_async, daemon=True)
+                tts_thread.start()
+            except Exception as e:
+                print(f"TTS Error: {e}")
     
     def wait_for_wake_word(self) -> bool:
         """Wait specifically for the wake word 'spotify'"""
@@ -138,6 +152,7 @@ class SpotifyAssistant:
                 
                 if "spotify" in command:
                     print("✅ Spotify activated! What would you like me to do?")
+                    self.speak("Spotify activated! What would you like me to do?")
                     return True
                 else:
                     print(f"Heard: '{command}' - Please say 'Spotify' to activate.")
@@ -231,106 +246,106 @@ class SpotifyAssistant:
         """Resume playback"""
         try:
             self.spotify.start_playback()
-            print("▶️ Playing music")
+            self.speak("Playing music")
         except Exception as e:
             if "No active device" in str(e) or "404" in str(e):
                 print("🔍 No active device found, searching for available devices...")
                 if self.activate_device():
                     try:
                         self.spotify.start_playback()
-                        print("▶️ Playing music")
+                        self.speak("Playing music")
                     except Exception as retry_e:
-                        print(f"❌ Playback failed even after device activation: {str(retry_e)}")
+                        self.speak("Playback failed even after device activation")
                 else:
-                    print("❌ No active device found or playback failed")
+                    self.speak("No active device found")
             else:
-                print(f"❌ Playback failed: {str(e)}")
+                self.speak("Playback failed")
     
     def pause_music(self):
         """Pause playback"""
         try:
             self.spotify.pause_playback()
-            print("⏸️ Music paused")
+            self.speak("Music paused")
         except Exception as e:
             if "No active device" in str(e) or "404" in str(e):
                 print("🔍 No active device found for pause command")
                 if self.activate_device():
                     try:
                         self.spotify.pause_playback()
-                        print("⏸️ Music paused")
+                        self.speak("Music paused")
                     except Exception as retry_e:
-                        print(f"❌ Pause failed: {str(retry_e)}")
+                        self.speak("Pause failed")
                 else:
-                    print("❌ No device available to pause")
+                    self.speak("No device available to pause")
             else:
-                print(f"❌ Pause failed: {str(e)}")
+                self.speak("Pause failed")
     
     def skip_track(self):
         """Skip to next track"""
         try:
             self.spotify.next_track()
-            print("⏭️ Skipping to next track")
+            self.speak("Skipping to next track")
         except Exception as e:
             if "No active device" in str(e) or "404" in str(e):
                 print("🔍 No active device found for skip command")
                 if self.activate_device():
                     try:
                         self.spotify.next_track()
-                        print("⏭️ Skipping to next track")
+                        self.speak("Skipping to next track")
                     except Exception as retry_e:
-                        print(f"❌ Skip failed: {str(retry_e)}")
+                        self.speak("Skip failed")
                 else:
-                    print("❌ No device available to skip")
+                    self.speak("No device available to skip")
             else:
-                print(f"❌ Skip failed: {str(e)}")
+                self.speak("Skip failed")
     
     def previous_track(self):
         """Go to previous track"""
         try:
             self.spotify.previous_track()
-            print("Going to previous track")
+            self.speak("Going to previous track")
         except Exception as e:
-            print("Previous track failed")
+            self.speak("Previous track failed")
     
     def set_volume(self, volume_percent: int):
         """Set playback volume (0-100)"""
         try:
             self.spotify.volume(volume_percent)
-            print(f"Volume set to {volume_percent}%")
+            self.speak(f"Volume set to {volume_percent}%")
         except Exception as e:
-            print(f"Failed to set volume: {str(e)}")
+            self.speak(f"Failed to set volume: {str(e)}")
     
     def shuffle_on(self):
         """Turn shuffle on"""
         try:
             self.spotify.shuffle(True)
-            print("Shuffle turned on")
+            self.speak("Shuffle turned on")
         except Exception as e:
-            print("Failed to turn on shuffle")
+            self.speak("Failed to turn on shuffle")
     
     def shuffle_off(self):
         """Turn shuffle off"""
         try:
             self.spotify.shuffle(False)
-            print("Shuffle turned off")
+            self.speak("Shuffle turned off")
         except Exception as e:
-            print("Failed to turn off shuffle")
+            self.speak("Failed to turn off shuffle")
     
     def repeat_track(self):
         """Repeat current track"""
         try:
             self.spotify.repeat('track')
-            print("Repeating current track")
+            self.speak("Repeating current track")
         except Exception as e:
-            print("Failed to set repeat")
+            self.speak("Failed to set repeat")
     
     def repeat_off(self):
         """Turn off repeat"""
         try:
             self.spotify.repeat('off')
-            print("Repeat turned off")
+            self.speak("Repeat turned off")
         except Exception as e:
-            print("Failed to turn off repeat")
+            self.speak("Failed to turn off repeat")
     
     def what_song(self):
         """Get current playing song info"""
@@ -341,11 +356,11 @@ class SpotifyAssistant:
                 track_name = track['name']
                 artist_name = track['artists'][0]['name']
                 album_name = track['album']['name']
-                print(f"Now playing: {track_name} by {artist_name} from {album_name}")
+                self.speak(f"Now playing: {track_name} by {artist_name} from {album_name}")
             else:
-                print("Nothing is currently playing")
+                self.speak("Nothing is currently playing")
         except Exception as e:
-            print("Failed to get current song info")
+            self.speak("Failed to get current song info")
     
     def play_artist(self, artist_name: str):
         """Play popular songs by an artist"""
@@ -363,24 +378,24 @@ class SpotifyAssistant:
                     track_uris = [track['uri'] for track in top_tracks['tracks'][:10]]  # Top 10 tracks
                     try:
                         self.spotify.start_playback(uris=track_uris)
-                        print(f"🎤 Playing top songs by {artist_name_found}")
+                        self.speak(f"Playing top songs by {artist_name_found}")
                     except Exception as playback_e:
                         if "No active device" in str(playback_e) or "404" in str(playback_e):
                             print("🔍 No active device found, searching for available devices...")
                             if self.activate_device():
                                 try:
                                     self.spotify.start_playback(uris=track_uris)
-                                    print(f"🎤 Playing top songs by {artist_name_found}")
+                                    self.speak(f"Playing top songs by {artist_name_found}")
                                 except Exception as retry_e:
-                                    print(f"❌ Playback failed: {str(retry_e)}")
+                                    self.speak("Playback failed")
                             else:
-                                print("❌ No device available to play music")
+                                self.speak("No device available to play music")
                         else:
-                            print(f"❌ Playback failed: {str(playback_e)}")
+                            self.speak("Playback failed")
                 else:
-                    print(f"❌ No tracks found for {artist_name}")
+                    self.speak(f"No tracks found for {artist_name}")
             else:
-                print(f"❌ Artist '{artist_name}' not found")
+                self.speak(f"Artist {artist_name} not found")
                 
         except Exception as e:
             print(f"❌ Failed to play artist: {str(e)}")
@@ -393,11 +408,11 @@ class SpotifyAssistant:
                 track_id = current['item']['id']
                 self.spotify.current_user_saved_tracks_add([track_id])
                 track_name = current['item']['name']
-                print(f"Liked: {track_name}")
+                self.speak(f"Liked: {track_name}")
             else:
-                print("No song is currently playing")
+                self.speak("No song is currently playing")
         except Exception as e:
-            print("Failed to like song")
+            self.speak("Failed to like song")
     
     def play_liked_songs(self):
         """Play user's liked songs"""
@@ -406,11 +421,11 @@ class SpotifyAssistant:
             if liked_tracks['items']:
                 track_uris = [item['track']['uri'] for item in liked_tracks['items']]
                 self.spotify.start_playback(uris=track_uris)
-                print("Playing your liked songs")
+                self.speak("Playing your liked songs")
             else:
-                print("You don't have any liked songs")
+                self.speak("You don't have any liked songs")
         except Exception as e:
-            print("Failed to play liked songs")
+            self.speak("Failed to play liked songs")
     
     def search_and_play(self, query: str):
         """Search for a song and play it"""
@@ -425,22 +440,22 @@ class SpotifyAssistant:
                 
                 try:
                     self.spotify.start_playback(uris=[track_uri])
-                    print(f"🎵 Playing {track_name} by {artist_name}")
+                    self.speak(f"Playing {track_name} by {artist_name}")
                 except Exception as playback_e:
                     if "No active device" in str(playback_e) or "404" in str(playback_e):
                         print("🔍 No active device found, searching for available devices...")
                         if self.activate_device():
                             try:
                                 self.spotify.start_playback(uris=[track_uri])
-                                print(f"🎵 Playing {track_name} by {artist_name}")
+                                self.speak(f"Playing {track_name} by {artist_name}")
                             except Exception as retry_e:
-                                print(f"❌ Playback failed: {str(retry_e)}")
+                                self.speak("Playback failed")
                         else:
-                            print("❌ No device available to play music")
+                            self.speak("No device available to play music")
                     else:
-                        print(f"❌ Playback failed: {str(playback_e)}")
+                        self.speak("Playback failed")
             else:
-                print(f"❌ Sorry, I couldn't find any songs matching '{query}'")
+                self.speak(f"Sorry, I couldn't find any songs matching {query}")
                 
         except Exception as e:
             print(f"❌ Search failed: {str(e)}")
@@ -462,7 +477,7 @@ class SpotifyAssistant:
                         self.current_playlist_tracks = tracks['items']
                         
                         self.spotify.start_playback(context_uri=playlist_uri)
-                        print(f"Playing playlist {playlist_name_found}")
+                        self.speak(f"Playing playlist {playlist_name_found}")
                         return
                 
                 # If no exact match, play the first result
@@ -474,9 +489,9 @@ class SpotifyAssistant:
                 self.current_playlist_tracks = tracks['items']
                 
                 self.spotify.start_playback(context_uri=playlist_uri)
-                print(f"Playing playlist {playlist_name_found}")
+                self.speak(f"Playing playlist {playlist_name_found}")
             else:
-                print(f"Sorry, I couldn't find a playlist named {playlist_name}")
+                self.speak(f"Sorry, I couldn't find a playlist named {playlist_name}")
                 
         except Exception as e:
             print(f"Playlist search failed: {str(e)}")
@@ -495,9 +510,9 @@ class SpotifyAssistant:
                 artist_name = track['artists'][0]['name']
                 
                 self.spotify.start_playback(uris=[track_uri])
-                print(f"Playing track {track_number}: {track_name} by {artist_name}")
+                self.speak(f"Playing track {track_number}: {track_name} by {artist_name}")
             else:
-                print(f"Track number {track_number} is not available. Playlist has {len(self.current_playlist_tracks)} tracks.")
+                self.speak(f"Track number {track_number} is not available. Playlist has {len(self.current_playlist_tracks)} tracks.")
                 
         except Exception as e:
             print(f"Failed to play track number {track_number}: {str(e)}")

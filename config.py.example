@@ -15,5 +15,6 @@ VOICE_TIMEOUT = 3  # seconds to wait for voice input (reduced for faster respons
 VOICE_PHRASE_LIMIT = 5  # maximum seconds for a single phrase (reduced for quicker processing)
 
 # Text-to-Speech Settings
+TTS_ENABLED = True  # Enable/disable audio confirmations
 TTS_RATE = 150  # words per minute
 TTS_VOLUME = 0.8  # volume level (0.0 to 1.0)
