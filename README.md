@@ -37,12 +37,13 @@ A Python-based voice-controlled Spotify assistant that responds to voice command
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create a new app
    - Note your `Client ID` and `Client Secret`
-   - Add `http://localhost:8080/callback` to your app's Redirect URIs
+   - Add `http://localhost:8888/callback` to your app's Redirect URIs
    - Update `config.py` with your credentials:
      ```python
      CLIENT_ID = "your_actual_client_id"
      CLIENT_SECRET = "your_actual_client_secret"
      ```
+**Redirect URI can be set to whatever you please via config AND your developer portal**
 
 ## Usage
 
